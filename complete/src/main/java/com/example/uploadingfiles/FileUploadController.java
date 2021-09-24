@@ -37,16 +37,16 @@ public class FileUploadController {
 	}
 
 
-	// TODO: QUEUE IMPLEMENTATION.
-	// Is API available?
-
 	@GetMapping("/check")
-	public ResponseEntity<Boolean> checkAvailability() {
-		return new ResponseEntity<>(this.available, HttpStatus.OK);
+	public ResponseEntity<String> checkAvailability() {
+
+		if(this.available == true) {
+			return new ResponseEntity<>("Continue.", HttpStatus.CONTINUE);
+		} else {
+			return new ResponseEntity<>("Forbidden.", HttpStatus.FORBIDDEN);
+		}
+
 	}
-
-
-
 
 	@PostMapping("/")
 	public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
