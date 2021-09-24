@@ -2,6 +2,7 @@ package com.example.uploadingfiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
@@ -63,18 +64,19 @@ public class FileUploadController {
 
 	@PostMapping("/")
 	public String handleFileUpload(@RequestParam("file") MultipartFile file,
-			RedirectAttributes redirectAttributes) {
+			RedirectAttributes redirectAttributes) throws IOException {
 		// Grant permissions.
 		StorageProperties properties = new StorageProperties();
-		Path folderPermisions = Paths.get(properties.getLocation());
+		Path folderPermissions = Paths.get(properties.getLocation());
 
-		File owner = new File(String.valueOf(folderPermisions));
+		File owner = new File(String.valueOf(folderPermissions));
 
 		owner.setReadable(true, false);
 
 		owner.setWritable(true, false);
 
 		owner.setExecutable(true, false);
+
 
 		Path path = storageService.store(file);
 		redirectAttributes.addFlashAttribute("message",
@@ -88,14 +90,15 @@ public class FileUploadController {
 	private void RestoreDatabase(String fileName, Path path) {
 
 		try {
+
+
 			File file = new File(String.valueOf(path));
 
-
-			boolean debug = true;
-
 			String name = FilenameUtils.removeExtension(fileName);
-			DatabaseUtils.restore(name, path);
 
+			DatabaseUtils.drop(name);
+
+			DatabaseUtils.restore(name, path);
 
 		} catch (Exception e) {
 			// TODO: LOG
