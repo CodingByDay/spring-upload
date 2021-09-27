@@ -41,9 +41,9 @@ public class FileUploadController {
 	public ResponseEntity<String> checkAvailability() {
 
 		if(this.available == true) {
-			return new ResponseEntity<>("Continue.", HttpStatus.CONTINUE);
+			return 1;
 		} else {
-			return new ResponseEntity<>("Forbidden.", HttpStatus.FORBIDDEN);
+			return 2;
 		}
 
 	}
