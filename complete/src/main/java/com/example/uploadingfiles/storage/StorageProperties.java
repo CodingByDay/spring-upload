@@ -10,6 +10,13 @@ public class StorageProperties {
 	 */
 	private String location = "upload-dir";
 
+	public String getLocationSQL() {
+
+		return locationSQL;
+	}
+
+	private String locationSQL = "upload-dir";
+
 	public String getLocation() {
 		return location;
 	}
