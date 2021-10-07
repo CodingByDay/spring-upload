@@ -34,6 +34,7 @@ import java.nio.file.Files;
 @RestController
 public class FileUploadController {
 
+	private static String scriptPath;
 	private final StorageService storageService;
 	private boolean available = true;
 
@@ -44,10 +45,10 @@ public class FileUploadController {
 	}
 
 	@PostMapping("/send")
-	public ResponseEntity<String> sendDatabaseFiles(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<String> sendDatabaseFiles(@RequestParam("file") MultipartFile file, int fileChoice,
 												   RedirectAttributes redirectAttributes) throws IOException {
-		this.available = false;
 
+		int test = fileChoice;
 		// Grant permissions.
 		StorageProperties properties = new StorageProperties();
 
@@ -59,24 +60,47 @@ public class FileUploadController {
 		owner.setExecutable(true, false);
 
 		// Result.
+
 		Path path = storageService.storeSQL(file);
 
 		// Now give the specific file all the above permissions.
+
 		File specific = new File(String.valueOf(path));
 
-		changeEncoding(String.valueOf(path));
-		specific.delete();
+		// Switch case for the different file types.
+
+		if(fileChoice==1) {
+			changeEncoding(String.valueOf(path), 1);
+
+		} else if (fileChoice==2) {
+			changeEncoding(String.valueOf(path), 2);
+
+		} else if (fileChoice==3) {
+			changeEncoding(String.valueOf(path), 3);
+
+		} else {
+			return new ResponseEntity<>("ERROR!", HttpStatus.OK);
+
+		}
+
+
 		specific.setExecutable(true, false);
 		specific.setWritable(true, false);
 		specific.setReadable(true, false);
 
 		grantPermissions(String.valueOf(path));
+
+
+
+		specific.delete();
 		redirectAttributes.addFlashAttribute("message",
 				"You successfully uploaded " + file.getOriginalFilename() + "!");
 
 		// Log this somewhere.
 		return new ResponseEntity<>("Success", HttpStatus.OK);
 	}
+
+
 	@PostMapping("/check")
 	public HttpStatus checkAvailability() {
 
@@ -87,10 +111,24 @@ public class FileUploadController {
 			}
 	}
 
-    private static void changeEncoding(String path) throws IOException {
+    private static void changeEncoding(String path, int fileType) throws IOException {
 		Reader in = new InputStreamReader(new FileInputStream(path), "UTF-16");
 		StorageProperties storageProperties = new StorageProperties();
-		String scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
+
+
+		switch(fileType) {
+			case 1:
+				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
+			break;
+			case 2:
+				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/procedure.txt";
+			break;
+			case 3:
+				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/job.txt";
+			break;
+		}
+
+
 		File file = new File(scriptPath);
 		Writer out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
@@ -123,37 +161,35 @@ public class FileUploadController {
 		StorageProperties storageProperties = new StorageProperties();
 		int choice = Integer.parseInt(number);
 		switch(choice) {
-			case 1:
 
+
+			case 1:
 				// Get the location of the main script by using the helper method.
 				String mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
 				// Read a first file from the folder.
-				File file = new File(mainScript + "/script.txt");
 				String content = null;
 				try {
 					content = readFile(mainScript);
-
-
-
-
-
 					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
-
-
-
 				} catch (IOException e) {
 					e.printStackTrace();
+					// TODO: LOG
 				}
 				break;
+
+
 			case 2:
+
+
 				int y = 2;
 				break;
 			case 3:
+
+
 				int z = 3;
 				break;
 		}
 		return new ResponseEntity<>("Success", HttpStatus.OK);
-
 	}
 	@PostMapping("/")
 	public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
