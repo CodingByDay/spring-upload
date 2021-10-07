@@ -9,13 +9,13 @@ public class StorageProperties {
 	 * Folder location for storing files
 	 */
 	private String location = "upload-dir";
-
+	private String locationSQL = "sql-dir";
+// This is a helper class to return the directory name for the both use cases.
 	public String getLocationSQL() {
 
 		return locationSQL;
 	}
 
-	private String locationSQL = "upload-dir";
 
 	public String getLocation() {
 		return location;

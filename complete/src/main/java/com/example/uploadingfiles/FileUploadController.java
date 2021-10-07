@@ -1,36 +1,35 @@
 package com.example.uploadingfiles;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
 import com.example.uploadingfiles.database.DatabaseUtils;
 import com.example.uploadingfiles.storage.StorageProperties;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.apache.commons.io.FilenameUtils;
 import com.example.uploadingfiles.storage.StorageService;
+import org.thymeleaf.expression.Lists;
+
+import javax.servlet.ServletInputStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 @RestController
 public class FileUploadController {
@@ -52,7 +51,7 @@ public class FileUploadController {
 		// Grant permissions.
 		StorageProperties properties = new StorageProperties();
 
-		Path folderPermissions = Paths.get(properties.getLocation());
+		Path folderPermissions = Paths.get(properties.getLocationSQL());
 		File owner = new File(String.valueOf(folderPermissions));
 
 		owner.setReadable(true, false);
@@ -65,6 +64,8 @@ public class FileUploadController {
 		// Now give the specific file all the above permissions.
 		File specific = new File(String.valueOf(path));
 
+		changeEncoding(String.valueOf(path));
+		specific.delete();
 		specific.setExecutable(true, false);
 		specific.setWritable(true, false);
 		specific.setReadable(true, false);
@@ -86,31 +87,60 @@ public class FileUploadController {
 			}
 	}
 
+    private static void changeEncoding(String path) throws IOException {
+		Reader in = new InputStreamReader(new FileInputStream(path), "UTF-16");
+		StorageProperties storageProperties = new StorageProperties();
+		String scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
+		File file = new File(scriptPath);
+		Writer out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
-	public static String readFile(String path, Charset encoding) throws IOException
-	{
-		List<String> lines = Files.readAllLines(Paths.get(path), encoding);
-		return String.join(System.lineSeparator(), lines);
+
+		char[] cbuf = new char[2048];
+		int len;
+		while ((len = in.read(cbuf, 0, cbuf.length)) != -1) {
+			out.write(cbuf, 0, len);
+		}
+
+
+
 	}
-    @GetMapping("/script")
+	public static String readFile(String path) throws IOException
+	{
+		String targetString = new String(Files.readAllBytes(Paths.get(path)));
+
+		return targetString;
+	}
+
+
+    @GetMapping(path = "/script", produces="application/plain; charset=UTF-8")
 	public ResponseEntity<String> sendTheScriptFiles(@RequestParam("number") String number,
 													 RedirectAttributes redirectAttributes) throws IOException {
+
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.add("Content-Type", "application/xml; charset=utf-8");
 
 
 		StorageProperties storageProperties = new StorageProperties();
 		int choice = Integer.parseInt(number);
 		switch(choice) {
 			case 1:
+
 				// Get the location of the main script by using the helper method.
-				String mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/UTN_DB_script";
+				String mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
 				// Read a first file from the folder.
-				File file = new File(mainScript + "/UTN_DB_script");
+				File file = new File(mainScript + "/script.txt");
 				String content = null;
 				try {
-					content = readFile(mainScript, StandardCharsets.UTF_8);
+					content = readFile(mainScript);
 
 
-					int debug = 2;
+
+
+
+					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
+
+
+
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
