@@ -35,8 +35,14 @@ import java.nio.file.Files;
 public class FileUploadController {
 
 	private static String scriptPath;
+
 	private final StorageService storageService;
+
 	private boolean available = true;
+
+	private String mainScript;
+
+	private String content;
 
 	@Autowired
 	public FileUploadController(StorageService storageService) {
@@ -45,10 +51,10 @@ public class FileUploadController {
 	}
 
 	@PostMapping("/send")
-	public ResponseEntity<String> sendDatabaseFiles(@RequestParam("file") MultipartFile file, int fileChoice,
+	public ResponseEntity<String> sendDatabaseFiles(@RequestParam("file") MultipartFile file,
 												   RedirectAttributes redirectAttributes) throws IOException {
 
-		int test = fileChoice;
+
 		// Grant permissions.
 		StorageProperties properties = new StorageProperties();
 
@@ -67,21 +73,7 @@ public class FileUploadController {
 
 		File specific = new File(String.valueOf(path));
 
-		// Switch case for the different file types.
 
-		if(fileChoice==1) {
-			changeEncoding(String.valueOf(path), 1);
-
-		} else if (fileChoice==2) {
-			changeEncoding(String.valueOf(path), 2);
-
-		} else if (fileChoice==3) {
-			changeEncoding(String.valueOf(path), 3);
-
-		} else {
-			return new ResponseEntity<>("ERROR!", HttpStatus.OK);
-
-		}
 
 
 		specific.setExecutable(true, false);
@@ -92,7 +84,6 @@ public class FileUploadController {
 
 
 
-		specific.delete();
 		redirectAttributes.addFlashAttribute("message",
 				"You successfully uploaded " + file.getOriginalFilename() + "!");
 
@@ -111,37 +102,7 @@ public class FileUploadController {
 			}
 	}
 
-    private static void changeEncoding(String path, int fileType) throws IOException {
-		Reader in = new InputStreamReader(new FileInputStream(path), "UTF-16");
-		StorageProperties storageProperties = new StorageProperties();
 
-
-		switch(fileType) {
-			case 1:
-				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
-			break;
-			case 2:
-				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/procedure.txt";
-			break;
-			case 3:
-				scriptPath = Paths.get(storageProperties.getLocationSQL()).toString() + "/job.txt";
-			break;
-		}
-
-
-		File file = new File(scriptPath);
-		Writer out = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-
-
-		char[] cbuf = new char[2048];
-		int len;
-		while ((len = in.read(cbuf, 0, cbuf.length)) != -1) {
-			out.write(cbuf, 0, len);
-		}
-
-
-
-	}
 	public static String readFile(String path) throws IOException
 	{
 		String targetString = new String(Files.readAllBytes(Paths.get(path)));
@@ -165,9 +126,9 @@ public class FileUploadController {
 
 			case 1:
 				// Get the location of the main script by using the helper method.
-				String mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
+				mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/script.txt";
 				// Read a first file from the folder.
-				String content = null;
+				content = null;
 				try {
 					content = readFile(mainScript);
 					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
@@ -179,14 +140,46 @@ public class FileUploadController {
 
 
 			case 2:
-
-
-				int y = 2;
+                // Get the location of the main script by using the helper method.
+				mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/execute.txt";
+				// Read a first file from the folder.
+				content = null;
+				try {
+					content = readFile(mainScript);
+					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
+				} catch (IOException e) {
+					e.printStackTrace();
+					// TODO: LOG
+				}
 				break;
+
+
 			case 3:
+				// Get the location of the main script by using the helper method.
+				mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/procedure.txt";
+				// Read a first file from the folder.
+				content = null;
+				try {
+					content = readFile(mainScript);
+					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
+				} catch (IOException e) {
+					e.printStackTrace();
+					// TODO: LOG
+				}
+				break;
 
-
-				int z = 3;
+			case 4:
+				// Get the location of the main script by using the helper method.
+				mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/job.txt";
+				// Read a first file from the folder.
+				content = null;
+				try {
+					content = readFile(mainScript);
+					return new ResponseEntity<>(content, responseHeaders, HttpStatus.OK);
+				} catch (IOException e) {
+					e.printStackTrace();
+					// TODO: LOG
+				}
 				break;
 		}
 		return new ResponseEntity<>("Success", HttpStatus.OK);

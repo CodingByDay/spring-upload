@@ -1,0 +1,5 @@
+exec uTN_P_DB_ProdajaPoRealizaciji;
+exec uTN_P_DB_Zaloge;
+exec uTN_P_DB_Forcast; 
+exec TN_P_DB_NaročilaIzdobava;
+exec uTN_P_DB_OdmikiCenNabavaProdaja;
