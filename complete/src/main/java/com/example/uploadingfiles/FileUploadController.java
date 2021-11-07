@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.LinkedList;
 
 @RestController
 public class FileUploadController {
@@ -43,7 +44,7 @@ public class FileUploadController {
 	private String mainScript;
 
 	private String content;
-
+	private LinkedList<String> queries = new LinkedList<String>();
 	@Autowired
 	public FileUploadController(StorageService storageService) {
 
@@ -101,7 +102,16 @@ public class FileUploadController {
 				return HttpStatus.FORBIDDEN;
 			}
 	}
-
+	@PostMapping("/start")
+	public HttpStatus start(@RequestBody String query) {
+		queries.add(query);
+		return HttpStatus.CONTINUE;
+	}
+	@PostMapping("/query")
+	public HttpStatus sendQuery(@RequestBody String query) {
+		queries.add(query);
+		return HttpStatus.CONTINUE;
+	}
 
 	public static String readFile(String path) throws IOException
 	{
