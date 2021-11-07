@@ -8,7 +8,7 @@ public class DatabaseUtils {
     public static boolean drop(String dbName)
             throws IOException, InterruptedException {
 
-        String out = String.format("sqlcmd -S localhost -U app -P app -Q \"DROP DATABASE [%s]\"", dbName);
+        String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"DROP DATABASE [%s]\"", dbName);
         Process runtimeProcess = Runtime.getRuntime().exec(out);
         int processComplete = runtimeProcess.waitFor();
         return processComplete == 0;
@@ -20,7 +20,7 @@ public class DatabaseUtils {
                 throws IOException, InterruptedException {
 
             String stringPath = String.valueOf(path);
-            String out = String.format("sqlcmd -S localhost -U app -P app -Q \"RESTORE DATABASE [%s] FROM DISK = N'%s' \"", dbName, stringPath);
+            String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"RESTORE DATABASE [%s] FROM DISK = N'%s' \"", dbName, stringPath);
             Process runtimeProcess = Runtime.getRuntime().exec(out);
             // TODO: LOG
             int processComplete = runtimeProcess.waitFor();
