@@ -16,16 +16,44 @@ public class DatabaseUtils {
 
 
 
-        public static boolean restore(String dbName, Path path)
-                throws IOException, InterruptedException {
+    public static boolean restore(String dbName, Path path)
+            throws IOException, InterruptedException {
 
-            String stringPath = String.valueOf(path);
-            String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"RESTORE DATABASE [%s] FROM DISK = N'%s' \"", dbName, stringPath);
-            Process runtimeProcess = Runtime.getRuntime().exec(out);
-            // TODO: LOG
-            int processComplete = runtimeProcess.waitFor();
-            return processComplete == 0;
-        }
+        String stringPath = String.valueOf(path);
+        String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"RESTORE DATABASE [%s] FROM DISK = N'%s' \"", dbName, stringPath);
+        Process runtimeProcess = Runtime.getRuntime().exec(out);
+        // TODO: LOG
+        int processComplete = runtimeProcess.waitFor();
+        return processComplete == 0;
     }
+
+
+    public static boolean ExecuteCustom(String query)
+            throws IOException, InterruptedException {
+
+        String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"%s\"", query);
+        Process runtimeProcess = Runtime.getRuntime().exec(out);
+        int processComplete = runtimeProcess.waitFor();
+        return processComplete == 0;
+    }
+    public static boolean ChangeContext(String database)
+            throws IOException, InterruptedException {
+
+        String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"USE %s\"", database);
+        Process runtimeProcess = Runtime.getRuntime().exec(out);
+        int processComplete = runtimeProcess.waitFor();
+        return processComplete == 0;
+    }
+
+
+    public static boolean CreateDatabase(String database)
+            throws IOException, InterruptedException {
+
+        String out = String.format("sqlcmd -S localhost -U sa -P net321tnet! -Q \"CREATE DATABASE %s\"", database);
+        Process runtimeProcess = Runtime.getRuntime().exec(out);
+        int processComplete = runtimeProcess.waitFor();
+        return processComplete == 0;
+    }
+}
 
 

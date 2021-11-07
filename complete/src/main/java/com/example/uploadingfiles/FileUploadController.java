@@ -45,6 +45,8 @@ public class FileUploadController {
 
 	private String content;
 	private LinkedList<String> queries = new LinkedList<String>();
+	private String currentClient;
+
 	@Autowired
 	public FileUploadController(StorageService storageService) {
 
@@ -53,7 +55,7 @@ public class FileUploadController {
 
 	@PostMapping("/send")
 	public ResponseEntity<String> sendDatabaseFiles(@RequestParam("file") MultipartFile file,
-												   RedirectAttributes redirectAttributes) throws IOException {
+													RedirectAttributes redirectAttributes) throws IOException {
 
 
 		// Grant permissions.
@@ -94,19 +96,28 @@ public class FileUploadController {
 
 
 	@PostMapping("/check")
-	public HttpStatus checkAvailability() {
-
-			if(this.available==true){
+	public HttpStatus checkAvailability(@RequestParam("db") String db) {
+		this.currentClient = db;
+		if(this.available==true){
 			return HttpStatus.CONTINUE;
-			} else {
-				return HttpStatus.FORBIDDEN;
-			}
+		} else {
+			return HttpStatus.FORBIDDEN;
+		}
 	}
 	@PostMapping("/start")
-	public HttpStatus start(@RequestBody String query) {
-		queries.add(query);
+	public HttpStatus start(@RequestBody String query) throws IOException, InterruptedException {
+		EmptyTheQueue(currentClient);
 		return HttpStatus.CONTINUE;
 	}
+
+	private void EmptyTheQueue(String currentClient) throws IOException, InterruptedException {
+		for (String query:queries
+		) {
+			DatabaseUtils.ExecuteCustom(query);
+
+		}
+	}
+
 	@PostMapping("/query")
 	public HttpStatus sendQuery(@RequestBody String query) {
 		queries.add(query);
@@ -121,7 +132,7 @@ public class FileUploadController {
 	}
 
 
-    @GetMapping(path = "/script", produces="application/plain; charset=UTF-8")
+	@GetMapping(path = "/script", produces="application/plain; charset=UTF-8")
 	public ResponseEntity<String> sendTheScriptFiles(@RequestParam("number") String number,
 													 RedirectAttributes redirectAttributes) throws IOException {
 
@@ -150,7 +161,7 @@ public class FileUploadController {
 
 
 			case 2:
-                // Get the location of the main script by using the helper method.
+				// Get the location of the main script by using the helper method.
 				mainScript = Paths.get(storageProperties.getLocationSQL()).toString() + "/execute.txt";
 				// Read a first file from the folder.
 				content = null;
@@ -196,9 +207,9 @@ public class FileUploadController {
 	}
 	@PostMapping("/")
 	public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file,
-			RedirectAttributes redirectAttributes) throws IOException {
+												   RedirectAttributes redirectAttributes) throws IOException {
 		this.available = false;
-		
+
 		// Grant permissions.
 		StorageProperties properties = new StorageProperties();
 
@@ -225,7 +236,7 @@ public class FileUploadController {
 		RestoreDatabase(file.getOriginalFilename(), path);
 		this.available = true;
 		// Delete the database.
-	    File clean = new File(String.valueOf(folderPermissions));
+		File clean = new File(String.valueOf(folderPermissions));
 		FileUtils.cleanDirectory(clean);
 
 		return new ResponseEntity<>("Success", HttpStatus.OK);
