@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import com.example.uploadingfiles.database.DatabaseUtils;
 import com.example.uploadingfiles.storage.StorageProperties;
 import org.apache.commons.io.FileUtils;
+import org.apache.tomcat.util.buf.Utf8Decoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Base64;
 import java.util.LinkedList;
 
 @RestController
@@ -105,10 +107,15 @@ public class FileUploadController {
 		}
 	}
 	@PostMapping("/start")
-	public HttpStatus start(@RequestBody String query) throws IOException, InterruptedException {
-		EmptyTheQueue(currentClient);
+	public HttpStatus start() throws IOException, InterruptedException {
+
+		try {
 		return HttpStatus.CONTINUE;
+		}  finally {
+			EmptyTheQueue(currentClient);
+		}
 	}
+
 
 	private void EmptyTheQueue(String currentClient) throws IOException, InterruptedException {
 		for (String query:queries
@@ -119,8 +126,11 @@ public class FileUploadController {
 	}
 
 	@PostMapping("/query")
-	public HttpStatus sendQuery(@RequestBody String query) {
-		queries.add(query);
+	public HttpStatus sendQuery(@RequestBody String query) throws UnsupportedEncodingException {
+
+		String sQuery = query;
+
+		queries.add(sQuery);
 		return HttpStatus.CONTINUE;
 	}
 
